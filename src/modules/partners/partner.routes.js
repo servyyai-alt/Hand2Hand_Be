@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const partner_controller_1 = require("./partner.controller");
+const auth_middleware_1 = require("../../middlewares/auth.middleware");
+const role_middleware_1 = require("../../middlewares/role.middleware");
+const router = (0, express_1.Router)();
+const ctrl = new partner_controller_1.PartnerController();
+router.use(auth_middleware_1.authenticate, (0, role_middleware_1.authorize)('DELIVERY_PARTNER'));
+router.get('/profile', ctrl.getProfile.bind(ctrl));
+router.post('/availability', ctrl.setAvailability.bind(ctrl));
+router.get('/earnings', ctrl.getEarnings.bind(ctrl));
+router.get('/deliveries', ctrl.getDeliveries.bind(ctrl));
+exports.default = router;

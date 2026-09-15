@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const delivery_controller_1 = require("./delivery.controller");
+const auth_middleware_1 = require("../../middlewares/auth.middleware");
+const role_middleware_1 = require("../../middlewares/role.middleware");
+const router = (0, express_1.Router)();
+const ctrl = new delivery_controller_1.DeliveryController();
+router.use(auth_middleware_1.authenticate);
+router.post('/fare', (0, role_middleware_1.authorize)('CUSTOMER'), ctrl.getFare.bind(ctrl));
+router.post('/', (0, role_middleware_1.authorize)('CUSTOMER'), ctrl.create.bind(ctrl));
+router.get('/my', (0, role_middleware_1.authorize)('CUSTOMER'), ctrl.getMyDeliveries.bind(ctrl));
+router.get('/:id', auth_middleware_1.authenticate, ctrl.getById.bind(ctrl));
+router.post('/:id/cancel', (0, role_middleware_1.authorize)('CUSTOMER'), ctrl.cancel.bind(ctrl));
+exports.default = router;
