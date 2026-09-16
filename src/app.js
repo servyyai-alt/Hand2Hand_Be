@@ -21,7 +21,9 @@ const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({
-    origin: [env_1.env.ADMIN_WEB_URL, 'http://localhost:3000', 'http://localhost:8081'],
+    origin: env_1.env.NODE_ENV === 'production'
+        ? [env_1.env.ADMIN_WEB_URL]
+        : true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

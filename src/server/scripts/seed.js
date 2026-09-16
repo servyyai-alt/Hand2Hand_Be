@@ -37,7 +37,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/hyperlocal_delivery';
@@ -55,7 +54,7 @@ async function seed() {
         CustomerProfileModel.deleteMany({}),
         PricingModel.deleteMany({}),
     ]);
-    const hash = await bcryptjs_1.default.hash('Test@1234', 12);
+    const hash = 'Test@1234';
     // Admin
     const admin = await UserModel.create({
         name: 'Super Admin', phone: '9000000000', email: 'admin@hyperlocal.in',
