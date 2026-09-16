@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeliveryModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const src_1 = require("../../../../packages/constants/src");
+const src_1 = require("../../constants");
 const AppError_1 = require("../../errors/AppError");
 const locationSchema = new mongoose_1.Schema({
     address: { type: String, required: true },

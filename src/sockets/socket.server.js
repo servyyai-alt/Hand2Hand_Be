@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.emitToUser = exports.emitToDelivery = exports.initializeSocket = exports.io = void 0;
 const socket_io_1 = require("socket.io");
 const jwt_util_1 = require("../utils/jwt.util");
-const src_1 = require("../../../packages/constants/src");
+const src_1 = require("../constants");
 const partnerProfile_model_1 = require("../modules/partners/partnerProfile.model");
 const logger_1 = require("../utils/logger");
 const initializeSocket = (httpServer) => {

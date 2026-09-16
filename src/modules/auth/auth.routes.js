@@ -5,7 +5,7 @@ const auth_controller_1 = require("./auth.controller");
 const auth_middleware_1 = require("../../middlewares/auth.middleware");
 const rateLimit_middleware_1 = require("../../middlewares/rateLimit.middleware");
 const validate_middleware_1 = require("../../middlewares/validate.middleware");
-const src_1 = require("../../../../packages/validation/src");
+const src_1 = require("./auth.validation");
 const router = (0, express_1.Router)();
 const ctrl = new auth_controller_1.AuthController();
 router.post('/register', rateLimit_middleware_1.authRateLimit, (0, validate_middleware_1.validateRequest)(src_1.registerSchema), ctrl.register.bind(ctrl));
