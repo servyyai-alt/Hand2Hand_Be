@@ -16,5 +16,8 @@ router.post('/forgot-password', rateLimit_middleware_1.authRateLimit, (0, valida
 router.post('/reset-password', rateLimit_middleware_1.authRateLimit, (0, validate_middleware_1.validateRequest)(src_1.resetPasswordSchema), ctrl.resetPassword.bind(ctrl));
 router.post('/refresh-token', rateLimit_middleware_1.authRateLimit, ctrl.refreshToken.bind(ctrl));
 router.post('/logout', ctrl.logout.bind(ctrl));
+router.patch('/change-password', auth_middleware_1.authenticate, (0, validate_middleware_1.validateRequest)(src_1.changePasswordSchema), ctrl.changePassword.bind(ctrl));
+router.get('/verify-invitation', ctrl.verifyInvitation.bind(ctrl));
+router.post('/accept-invitation', rateLimit_middleware_1.authRateLimit, ctrl.acceptInvitation.bind(ctrl));
 router.get('/me', auth_middleware_1.authenticate, ctrl.getMe.bind(ctrl));
 exports.default = router;

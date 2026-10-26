@@ -49,14 +49,49 @@ const userSchema = new mongoose_1.Schema({
     isPhoneVerified: { type: Boolean, default: false },
     isEmailVerified: { type: Boolean, default: false },
     fcmToken: { type: String },
+    avatar: { type: String, default: '' },
+    notificationPreferences: {
+        deliveryAccepted: { type: Boolean, default: true },
+        partnerArriving: { type: Boolean, default: true },
+        itemPickedUp: { type: Boolean, default: true },
+        deliveryInProgress: { type: Boolean, default: true },
+        deliveryCompleted: { type: Boolean, default: true },
+        paymentUpdates: { type: Boolean, default: true },
+        promotions: { type: Boolean, default: false },
+    },
     tokenVersion: { type: Number, default: 0 },
     lastLoginAt: { type: Date },
+    approvalStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'APPROVED', index: true },
+    adminApprovalStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING', index: true },
+    superAdminApprovalStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING', index: true },
+    accountStatus: { type: String, enum: ['PENDING_VERIFICATION', 'ACTIVE', 'INACTIVE', 'BLOCKED', 'REJECTED', 'SUSPENDED'], default: 'PENDING_VERIFICATION', index: true },
+    isActive: { type: Boolean, default: false, index: true },
+    canWork: { type: Boolean, default: false, index: true },
+    canAcceptDeliveries: { type: Boolean, default: false, index: true },
+    designation: { type: String, trim: true, default: '' },
+    permissions: { type: [String], default: ['customers', 'partners', 'deliveries', 'support'] },
+    approvedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    approvedAt: { type: Date },
+    approvedByAdmin: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    adminApprovedAt: { type: Date },
+    approvedBySuperAdmin: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    superAdminApprovedAt: { type: Date },
+    rejectedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    rejectedAt: { type: Date },
+    rejectionReason: { type: String, default: '' },
+    partnerId: { type: String, sparse: true, index: true },
+    applicationRef: { type: String, sparse: true, index: true },
+    applicationSubmittedAt: { type: Date },
+    invitationToken: { type: String, select: false },
+    invitationExpiresAt: { type: Date },
+    isInvitationAccepted: { type: Boolean, default: false },
 }, {
     timestamps: true,
     toJSON: {
         transform: (_doc, ret) => {
             const sanitized = { ...ret };
             delete sanitized.passwordHash;
+            delete sanitized.invitationToken;
             delete sanitized.tokenVersion;
             delete sanitized.__v;
             return sanitized;

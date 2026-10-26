@@ -8,7 +8,7 @@ const router = Router();
 const controller = new HomeCardController();
 
 router.get('/active', controller.listActive.bind(controller));
-router.use(authenticate, authorize('ADMIN', 'SUPER_ADMIN'));
+router.use(authenticate, authorize('SUPER_ADMIN'));
 router.get('/', controller.list.bind(controller));
 router.post('/', controller.create.bind(controller));
 router.put('/:id', controller.update.bind(controller));
