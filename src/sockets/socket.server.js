@@ -43,22 +43,100 @@ const initializeSocket = (httpServer) => {
                 await partnerProfile_model_1.PartnerProfileModel.findOneAndUpdate({ userId }, { isOnline: false, isAvailable: false });
             });
             socket.on(src_1.SOCKET_EVENTS.PARTNER_LOCATION_UPDATE, async (data) => {
-                await partnerProfile_model_1.PartnerProfileModel.findOneAndUpdate({ userId }, { 'currentLocation.coordinates': [data.coords.lng, data.coords.lat] });
-                // Broadcast to any active delivery room this partner is in
-                socket.rooms.forEach(room => {
-                    if (room.startsWith('delivery:')) {
-                        exports.io.to(room).emit(src_1.SOCKET_EVENTS.PARTNER_LOCATION_UPDATED, { coords: data.coords });
+                try {
+                    if (!data || !data.coords) return;
+                    const { lat, lng } = data.coords;
+                    if (typeof lat !== 'number' || typeof lng !== 'number' || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                        return;
                     }
-                });
+
+                    // Update partner profile location in database
+                    await partnerProfile_model_1.PartnerProfileModel.findOneAndUpdate(
+                        { userId },
+                        { 'currentLocation.coordinates': [lng, lat] }
+                    );
+
+                    const deliveryId = data.deliveryId;
+                    if (!deliveryId) return;
+
+                    const { DeliveryModel } = require('../modules/deliveries/delivery.model');
+                    const delivery = await DeliveryModel.findOne({
+                        _id: deliveryId,
+                        partner: userId,
+                    });
+
+                    if (!delivery) return;
+
+                    // Verify tracking eligibility for current status
+                    const activeStatuses = ['PARTNER_ASSIGNED', 'ARRIVED_AT_PICKUP', 'PICKED_UP', 'IN_TRANSIT'];
+                    if (!activeStatuses.includes(delivery.status)) {
+                        return;
+                    }
+
+                    const locUpdate = {
+                        lat,
+                        lng,
+                        heading: typeof data.coords.heading === 'number' ? data.coords.heading : undefined,
+                        speed: typeof data.coords.speed === 'number' ? data.coords.speed : undefined,
+                        accuracy: typeof data.coords.accuracy === 'number' ? data.coords.accuracy : undefined,
+                        updatedAt: new Date(),
+                    };
+
+                    delivery.lastLocation = locUpdate;
+                    if (!delivery.locationHistory) delivery.locationHistory = [];
+                    delivery.locationHistory.push({ lat, lng, timestamp: new Date() });
+                    if (delivery.locationHistory.length > 50) {
+                        delivery.locationHistory = delivery.locationHistory.slice(-50);
+                    }
+                    await delivery.save();
+
+                    // Secure broadcast ONLY to the authorized order tracking room
+                    exports.io.to(`delivery:${deliveryId}`).emit(src_1.SOCKET_EVENTS.PARTNER_LOCATION_UPDATED, {
+                        deliveryId,
+                        coords: locUpdate,
+                        timestamp: new Date().toISOString(),
+                        status: delivery.status,
+                    });
+                } catch (err) {
+                    logger_1.logger.error(`Error processing location update: ${err.message}`);
+                }
             });
         }
-        // Join delivery room (customer or partner)
-        socket.on(src_1.SOCKET_EVENTS.JOIN_DELIVERY_ROOM, (deliveryId) => {
-            socket.join(`delivery:${deliveryId}`);
-            logger_1.logger.info(`${userId} joined delivery room: ${deliveryId}`);
+        // Join delivery room with strict authorization
+        socket.on(src_1.SOCKET_EVENTS.JOIN_DELIVERY_ROOM, async (payload) => {
+            try {
+                const deliveryId = typeof payload === 'object' && payload?.deliveryId ? payload.deliveryId : payload;
+                if (!deliveryId) return;
+                const { DeliveryModel } = require('../modules/deliveries/delivery.model');
+                const delivery = await DeliveryModel.findById(deliveryId).select('customer partner status');
+                if (!delivery) {
+                    socket.emit('delivery:error', { message: 'Delivery not found' });
+                    return;
+                }
+
+                const isCustomer = delivery.customer?.toString() === userId;
+                const isPartner = delivery.partner?.toString() === userId;
+                const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(role);
+
+                if (!isCustomer && !isPartner && !isAdmin) {
+                    socket.emit('delivery:error', { message: 'Unauthorized to access this delivery tracking channel' });
+                    logger_1.logger.warn(`Unauthorized join attempt by ${userId} for delivery:${deliveryId}`);
+                    return;
+                }
+
+                socket.join(`delivery:${deliveryId}`);
+                logger_1.logger.info(`Authorized: ${userId} (${role}) joined delivery room: ${deliveryId}`);
+                socket.emit('delivery:roomJoined', { deliveryId, status: delivery.status });
+            } catch (err) {
+                logger_1.logger.error(`Error joining delivery room: ${err.message}`);
+            }
         });
-        socket.on(src_1.SOCKET_EVENTS.LEAVE_DELIVERY_ROOM, (deliveryId) => {
-            socket.leave(`delivery:${deliveryId}`);
+        socket.on(src_1.SOCKET_EVENTS.LEAVE_DELIVERY_ROOM, (payload) => {
+            const deliveryId = typeof payload === 'object' && payload?.deliveryId ? payload.deliveryId : payload;
+            if (deliveryId) {
+                socket.leave(`delivery:${deliveryId}`);
+                logger_1.logger.info(`${userId} left delivery room: ${deliveryId}`);
+            }
         });
         socket.on('disconnect', async () => {
             if (role === 'DELIVERY_PARTNER') {

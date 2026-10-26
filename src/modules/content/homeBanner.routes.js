@@ -21,7 +21,7 @@ const upload = multer({
 const router = Router();
 const controller = new HomeBannerController();
 router.get('/active', controller.listActive.bind(controller));
-router.use(authenticate, authorize('ADMIN', 'SUPER_ADMIN'));
+router.use(authenticate, authorize('SUPER_ADMIN'));
 router.get('/', controller.list.bind(controller));
 router.post('/', upload.single('image'), controller.create.bind(controller));
 router.put('/:id', upload.single('image'), controller.update.bind(controller));

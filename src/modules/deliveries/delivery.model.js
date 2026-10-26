@@ -57,6 +57,68 @@ const statusHistorySchema = new mongoose_1.Schema({
     timestamp: { type: Date, default: Date.now },
     note: { type: String },
 }, { _id: false });
+const ratingSchema = new mongoose_1.Schema({
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    feedback: { type: String, maxlength: 500 },
+    createdAt: { type: Date, default: Date.now },
+}, { _id: false });
+const paymentSchema = new mongoose_1.Schema({
+    method: { type: String, enum: ['CASH', 'UPI', 'CARD', 'WALLET'], default: 'UPI' },
+    status: { type: String, enum: ['PENDING', 'PAID', 'REFUNDED', 'FAILED'], default: 'PAID' },
+    transactionId: { type: String },
+    paidAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const itemVerificationSchema = new mongoose_1.Schema({
+    originalImage: { type: String, default: '' },
+    originalUploadedAt: { type: Date, default: Date.now },
+    originalUploadedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    handlingInstructions: { type: String, maxlength: 500, default: '' },
+    pickupImage: { type: String, default: '' },
+    pickupUploadedAt: { type: Date },
+    pickupUploadedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    status: {
+        type: String,
+        enum: ['PENDING', 'VERIFIED', 'MISMATCH', 'OVERRIDDEN'],
+        default: 'PENDING',
+    },
+    verifiedAt: { type: Date },
+    verifiedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    notes: { type: String },
+    mismatchReason: {
+        type: String,
+        enum: ['WRONG_ITEM', 'DAMAGED_ITEM', 'DIFFERENT_SIZE_WEIGHT', 'SUSPICIOUS_PACKAGE', 'OTHER', 'NONE'],
+        default: 'NONE',
+    },
+    mismatchNotes: { type: String },
+    mismatchEvidenceImage: { type: String },
+    mismatchReportedAt: { type: Date },
+    mismatchReportedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    reviewStatus: {
+        type: String,
+        enum: ['NONE', 'PENDING_REVIEW', 'INVESTIGATING', 'RESOLVED_PROCEED', 'RESOLVED_CANCELLED'],
+        default: 'NONE',
+    },
+    adminDecision: { type: String },
+    adminDecisionAt: { type: Date },
+    adminDecisionBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+}, { _id: false });
+
+const lastLocationSchema = new mongoose_1.Schema({
+    lat: { type: Number },
+    lng: { type: Number },
+    accuracy: { type: Number },
+    heading: { type: Number },
+    speed: { type: Number },
+    updatedAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const locationHistoryItemSchema = new mongoose_1.Schema({
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true },
+    timestamp: { type: Date, default: Date.now },
+}, { _id: false });
+
 const deliverySchema = new mongoose_1.Schema({
     trackingId: { type: String, unique: true, index: true },
     customer: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
@@ -66,9 +128,14 @@ const deliverySchema = new mongoose_1.Schema({
     status: { type: String, enum: Object.keys(src_1.DELIVERY_STATUS_TRANSITIONS), default: 'CREATED', index: true },
     statusHistory: [statusHistorySchema],
     category: { type: String, enum: ['DOCUMENTS', 'FOOD', 'CLOTHES', 'GIFTS', 'PARCEL', 'BOOKS', 'PERSONAL_ITEMS', 'OTHER'], required: true },
+    itemName: { type: String, trim: true },
     description: { type: String, maxlength: 200 },
+    handlingInstructions: { type: String, maxlength: 500 },
     weight: { type: Number, min: 0, max: 50 },
     itemPhoto: { type: String },
+    itemVerification: { type: itemVerificationSchema },
+    lastLocation: { type: lastLocationSchema },
+    locationHistory: [locationHistoryItemSchema],
     fare: { type: fareSchema, default: {} },
     distance: { type: Number, default: 0 },
     duration: { type: Number, default: 0 },
@@ -76,6 +143,10 @@ const deliverySchema = new mongoose_1.Schema({
     deliveryOTP: { type: String, select: false },
     partnerSearchAttempts: { type: Number, default: 0 },
     cityId: { type: String, default: 'VLR' },
+    rating: { type: ratingSchema },
+    payment: { type: paymentSchema, default: () => ({ method: 'UPI', status: 'PAID', paidAt: new Date() }) },
+    cancellationReason: { type: String },
+    recipientNotes: { type: String },
 }, {
     timestamps: true,
     toJSON: {

@@ -54,9 +54,20 @@ class AuthController {
     }
     async login(req, res, next) {
         try {
-            const { phone, password } = req.body;
-            const result = await authService.login(phone, password);
+            const { phone, email, password } = req.body;
+            const identifier = email || phone;
+            const result = await authService.login(identifier, password);
             (0, response_1.sendSuccess)(res, result, 'Login successful');
+        }
+        catch (err) {
+            next(err);
+        }
+    }
+    async changePassword(req, res, next) {
+        try {
+            const { currentPassword, newPassword } = req.body;
+            const result = await authService.changePassword(req.user.userId, currentPassword, newPassword);
+            (0, response_1.sendSuccess)(res, result, 'Password changed successfully');
         }
         catch (err) {
             next(err);
@@ -86,6 +97,26 @@ class AuthController {
         try {
             const user = await authService.getMe(req.user.userId);
             (0, response_1.sendSuccess)(res, user, 'User retrieved');
+        }
+        catch (err) {
+            next(err);
+        }
+    }
+    async verifyInvitation(req, res, next) {
+        try {
+            const { token } = req.query;
+            const result = await authService.verifyInvitationToken(String(token || ''));
+            (0, response_1.sendSuccess)(res, result, 'Invitation token valid');
+        }
+        catch (err) {
+            next(err);
+        }
+    }
+    async acceptInvitation(req, res, next) {
+        try {
+            const { token, password } = req.body;
+            const result = await authService.acceptInvitation(token, password);
+            (0, response_1.sendSuccess)(res, result, result.message);
         }
         catch (err) {
             next(err);

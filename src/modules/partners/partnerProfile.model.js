@@ -38,12 +38,21 @@ const mongoose_1 = __importStar(require("mongoose"));
 const partnerProfileSchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
     vehicle: {
-        type: { type: String, enum: ['BICYCLE', 'MOTORCYCLE', 'SCOOTER', 'CAR', 'VAN'], default: 'MOTORCYCLE' },
+        type: { type: String, enum: ['BICYCLE', 'MOTORCYCLE', 'BIKE', 'SCOOTER', 'ELECTRIC_SCOOTER', 'EV_SCOOTER', 'AUTO', 'CAR', 'VAN'], default: 'MOTORCYCLE' },
         make: { type: String, default: '' },
         model: { type: String, default: '' },
         registrationNumber: { type: String, default: '' },
         rcPhoto: { type: String },
         insurancePhoto: { type: String },
+    },
+    kyc: {
+        drivingLicenceNumber: { type: String, default: '' },
+        drivingLicencePhoto: { type: String, default: '' },
+        panNumber: { type: String, default: '' },
+        panPhoto: { type: String, default: '' },
+        aadhaarNumber: { type: String, default: '' },
+        aadhaarPhoto: { type: String, default: '' },
+        profilePhoto: { type: String, default: '' },
     },
     isOnline: { type: Boolean, default: false, index: true },
     isAvailable: { type: Boolean, default: false, index: true },
@@ -58,7 +67,8 @@ const partnerProfileSchema = new mongoose_1.Schema({
     totalEarnings: { type: Number, default: 0 },
     walletBalance: { type: Number, default: 0 },
     kycStatus: { type: String, enum: ['NOT_SUBMITTED', 'PENDING', 'APPROVED', 'REJECTED'], default: 'NOT_SUBMITTED' },
-    documents: [{ type: { type: String }, url: String, status: { type: String, default: 'PENDING' } }],
+    rejectionReason: { type: String, default: '' },
+    documents: [{ type: { type: String }, url: String, number: String, status: { type: String, default: 'PENDING' } }],
 }, { timestamps: true });
 // Geospatial index for partner search
 partnerProfileSchema.index({ currentLocation: '2dsphere' });

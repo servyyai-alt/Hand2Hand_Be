@@ -11,7 +11,7 @@ let mongoServer;
 beforeAll(async () => {
     mongoServer = await mongodb_memory_server_1.MongoMemoryServer.create();
     await mongoose_1.default.connect(mongoServer.getUri());
-});
+}, 30000);
 afterAll(async () => {
     await mongoose_1.default.disconnect();
     await mongoServer.stop();
@@ -48,6 +48,32 @@ describe('Auth API', () => {
             phone: testUser.phone, password: testUser.password
         });
         expect(res.status).toBe(401);
+    });
+    it('POST /auth/register — registers a new DELIVERY_PARTNER', async () => {
+        const res = await (0, supertest_1.default)(app_1.default)
+            .post('/api/v1/auth/register')
+            .send({
+                name: 'Partner Rider',
+                phone: '9876543211',
+                password: 'Partner@1234',
+                role: 'DELIVERY_PARTNER',
+            });
+        expect(res.status).toBe(201);
+        expect(res.body.success).toBe(true);
+        expect(res.body.data.userId).toBeDefined();
+    });
+    it('POST /auth/register — rejects invalid 9-digit mobile number', async () => {
+        const res = await (0, supertest_1.default)(app_1.default)
+            .post('/api/v1/auth/register')
+            .send({
+                name: 'Partner',
+                phone: '638348565',
+                password: 'Password@123',
+                role: 'DELIVERY_PARTNER',
+            });
+        expect(res.status).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
     it('GET /auth/me — requires authentication', async () => {
         const res = await (0, supertest_1.default)(app_1.default).get('/api/v1/auth/me');

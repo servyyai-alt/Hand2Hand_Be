@@ -36,11 +36,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerProfileModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const addressSchema = new mongoose_1.Schema({
+    type: { type: String, enum: ['Home', 'Work', 'College', 'Other'], default: 'Other' },
     label: { type: String, required: true },
     address: { type: String, required: true },
-    landmark: { type: String },
-    coordinates: { lat: { type: Number }, lng: { type: Number } },
+    landmark: { type: String, default: '' },
+    city: { type: String, default: 'Vellore' },
+    state: { type: String, default: 'Tamil Nadu' },
+    pincode: { type: String, default: '' },
+    latitude: { type: Number },
+    longitude: { type: Number },
+    coordinates: {
+        lat: { type: Number },
+        lng: { type: Number },
+        latitude: { type: Number },
+        longitude: { type: Number }
+    },
     isDefault: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
 }, { _id: true });
 const customerProfileSchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },

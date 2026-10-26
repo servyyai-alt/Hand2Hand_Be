@@ -12,8 +12,11 @@ class UserRepository {
             query.select('+passwordHash');
         return query.exec();
     }
-    async findByEmail(email) {
-        return user_model_1.UserModel.findOne({ email }).exec();
+    async findByEmail(email, includePassword = false) {
+        const query = user_model_1.UserModel.findOne({ email });
+        if (includePassword)
+            query.select('+passwordHash');
+        return query.exec();
     }
     async create(data) {
         const user = new user_model_1.UserModel(data);

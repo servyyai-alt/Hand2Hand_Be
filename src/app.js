@@ -17,6 +17,12 @@ const partner_routes_1 = __importDefault(require("./modules/partners/partner.rou
 const admin_routes_1 = __importDefault(require("./modules/admin/admin.routes"));
 const homeCard_routes_1 = require("./modules/content/homeCard.routes");
 const homeBanner_routes_1 = require("./modules/content/homeBanner.routes");
+const user_routes_1 = __importDefault(require("./modules/users/user.routes"));
+const ticket_routes_1 = __importDefault(require("./modules/tickets/ticket.routes"));
+const payment_routes_1 = __importDefault(require("./modules/payments/payment.routes"));
+const notification_routes_1 = __importDefault(require("./modules/notifications/notification.routes"));
+const deliveryPartner_routes_1 = __importDefault(require("./modules/partners/deliveryPartner.routes"));
+const superAdmin_routes_1 = __importDefault(require("./modules/admin/superAdmin.routes"));
 const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
@@ -25,11 +31,12 @@ app.use((0, cors_1.default)({
         ? [env_1.env.ADMIN_WEB_URL]
         : true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Origin', 'Cache-Control', 'Pragma'],
     credentials: true,
 }));
-app.use(express_1.default.json({ limit: '10mb' }));
-app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
+app.options('*', (0, cors_1.default)());
+app.use(express_1.default.json({ limit: '50mb' }));
+app.use(express_1.default.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
 app.use((0, morgan_1.default)(env_1.env.NODE_ENV === 'production' ? 'combined' : 'dev', {
     stream: { write: (msg) => logger_1.logger.info(msg.trim()) },
@@ -40,9 +47,16 @@ app.get('/health', (_req, res) => {
 });
 const base = `/api/${env_1.env.API_VERSION}`;
 app.use(`${base}/auth`, auth_routes_1.default);
+app.use(`${base}/users`, user_routes_1.default);
+app.use(`${base}/tickets`, ticket_routes_1.default);
 app.use(`${base}/deliveries`, delivery_routes_1.default);
+app.use(`${base}/customer/deliveries`, delivery_routes_1.default);
+app.use(`${base}/payments`, payment_routes_1.default);
+app.use(`${base}/notifications`, notification_routes_1.default);
 app.use(`${base}/partners`, partner_routes_1.default);
+app.use(`${base}/delivery-partners`, deliveryPartner_routes_1.default);
 app.use(`${base}/admin`, admin_routes_1.default);
+app.use(`${base}/super-admin`, superAdmin_routes_1.default);
 app.use(`${base}/home-cards`, homeCard_routes_1.default);
 app.use(`${base}/home-banners`, homeBanner_routes_1.default);
 app.use((_req, res) => {

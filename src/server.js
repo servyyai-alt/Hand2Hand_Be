@@ -14,8 +14,9 @@ const start = async () => {
     await (0, database_1.connectDatabase)();
     const httpServer = http_1.default.createServer(app_1.default);
     (0, socket_server_1.initializeSocket)(httpServer);
+    // Listen on dual-stack wildcard so both localhost (IPv6 ::1) and IPv4 (127.0.0.1) connect seamlessly
     httpServer.listen(PORT, () => {
-        logger_1.logger.info(`🚀 Server running on port ${PORT}`);
+        logger_1.logger.info(`🚀 Server running on port ${PORT} (dual-stack IPv4/IPv6)`);
         logger_1.logger.info(`📡 API: http://localhost:${PORT}/api/${env_1.env.API_VERSION}`);
         logger_1.logger.info(`🌍 Environment: ${env_1.env.NODE_ENV}`);
     });
@@ -29,6 +30,13 @@ const start = async () => {
     };
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
+    // Prevent unhandled errors from terminating the server process
+    process.on('unhandledRejection', (reason, promise) => {
+        logger_1.logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    });
+    process.on('uncaughtException', (err) => {
+        logger_1.logger.error('Uncaught Exception:', err);
+    });
 };
 start().catch((err) => {
     console.error('Fatal startup error:', err);
